@@ -4,13 +4,10 @@
   gather_facts: no
   tasks:
 
-
    - name: Quitar VTP
      cisco.ios.ios_config:
        lines:
          - no vtp mode server
-
-
 
 
    - name: IP CD1
@@ -40,15 +37,11 @@
          - name PARKING
 
 
-
-
    - name: Configurar VTP Cliente
      cisco.ios.ios_config:
        lines:
          - vtp mode server
          - vtp domain tartuski
-
-
 
 
    - name: Deshabilitar bocas (puertos específicos)
@@ -60,16 +53,12 @@
          - shutdown
 
 
-
-
    - name: Habilitar bocas Trunk
      cisco.ios.ios_config:
        lines:
          - interface range g1/0/2-3
          - switchport mode trunk
          - no shutdown
-
-
 
 
    - name: Etherchannel
@@ -82,8 +71,6 @@
          - no shutdown
 
 
-
-
    - name: Spanning-tree
      cisco.ios.ios_config:
        lines:
@@ -91,8 +78,6 @@
          - spanning-tree VLAN 30 root primary
          - spanning-tree VLAN 20 root secondary
          - spanning-tree VLAN 50 root secondary
-
-
 
 
    - name: InterVLAN Routing y HSRP
@@ -107,43 +92,39 @@
          - standby 1 timers 5 15
          - interface vlan 20
          - ip address 192.168.20.252 255.255.255.0
-         - standby 1 ip 192.168.20.254
-         - standby 1 priority 150
-         - standby 1 preempt
-         - standby 1 authentication tartuski
-         - standby 1 timers 5 15
+         - standby 2 ip 192.168.20.254
+         - standby 2 priority 100
+         - standby 2 preempt
+         - standby 2 authentication tartuski
+         - standby 2 timers 5 15
          - interface vlan 30
          - ip address 192.168.30.252 255.255.255.0
-         - standby 1 ip 192.168.30.254
-         - standby 1 priority 150
-         - standby 1 preempt
-         - standby 1 authentication tartuski
-         - standby 1 timers 5 15
+         - standby 3 ip 192.168.30.254
+         - standby 3 priority 150
+         - standby 3 preempt
+         - standby 3 authentication tartuski
+         - standby 3 timers 5 15
          - interface vlan 40
          - ip address 192.168.40.252 255.255.255.0
-         - standby 1 ip 192.168.40.254
-         - standby 1 priority 150
-         - standby 1 preempt
-         - standby 1 authentication tartuski
-         - standby 1 timers 5 15
+         - standby 4 ip 192.168.40.254
+         - standby 4 priority 100
+         - standby 4 preempt
+         - standby 4 authentication tartuski
+         - standby 4 timers 5 15
          - interface vlan 50
          - ip address 192.168.50.252 255.255.255.0
-         - standby 1 ip 192.168.50.254
-         - standby 1 priority 150
-         - standby 1 preempt
-         - standby 1 authentication tartuski
-         - standby 1 timers 5 15
+         - standby 5 ip 192.168.50.254
+         - standby 5 priority 100
+         - standby 5 preempt
+         - standby 5 authentication tartuski
+         - standby 5 timers 5 15
          - interface vlan 60
          - ip address 192.168.60.252 255.255.255.0
-         - standby 1 ip 192.168.60.254
-         - standby 1 priority 150
-         - standby 1 preempt
-         - standby 1 authentication tartuski
-         - standby 1 timers 5 15
-         - interface vlan 99
-
-
-
+         - standby 6 ip 192.168.60.254
+         - standby 6 priority 150
+         - standby 6 preempt
+         - standby 6 authentication tartuski
+         - standby 6 timers 5 15
 
 
 
@@ -153,13 +134,11 @@
          - no ip dhcp excluded-address 192.168.10.200 192.168.10.254
          - no ip dhcp pool vlan10
 
-
    - name: Eliminar configuración DHCP para vlan30
      cisco.ios.ios_config:
        lines:
          - no ip dhcp excluded-address 192.168.30.200 192.168.30.254
          - no ip dhcp pool vlan30
-
 
    - name: Eliminar configuración DHCP para vlan40
      cisco.ios.ios_config:
@@ -167,13 +146,11 @@
          - no ip dhcp excluded-address 192.168.40.200 192.168.40.254
          - no ip dhcp pool vlan40
 
-
    - name: Eliminar configuración DHCP para vlan60
      cisco.ios.ios_config:
        lines:
          - no ip dhcp excluded-address 192.168.60.200 192.168.60.254
          - no ip dhcp pool vlan60
-
 
    - name: DHCP
      cisco.ios.ios_config:
@@ -183,31 +160,25 @@
          - ip dhcp pool vlan10
          - network 192.168.10.0 255.255.255.0
          - default-router 192.168.10.254
-         ## pendiente de poner la de azure:
          - dns-server 8.8.8.8
        ## vlan 30
          - ip dhcp excluded-address 192.168.30.200 192.168.30.254
          - ip dhcp pool vlan30
          - network 192.168.30.0 255.255.255.0
          - default-router 192.168.30.254
-         ## pendiente de poner la de azure:
          - dns-server 8.8.8.8
        ## vlan 40
          - ip dhcp excluded-address 192.168.40.200 192.168.40.254
          - ip dhcp pool vlan40
          - network 192.168.40.0 255.255.255.0
          - default-router 192.168.40.254
-         ## pendiente de poner la de azure:
          - dns-server 8.8.8.8
        ## vlan 60
          - ip dhcp excluded-address 192.168.60.200 192.168.60.254
          - ip dhcp pool vlan60
          - network 192.168.60.0 255.255.255.0
          - default-router 192.168.60.254
-         ## pendiente de poner la de azure:
          - dns-server 8.8.8.8
-
-
 
 
    - name: OSPF
@@ -215,8 +186,6 @@
        lines:
          - ip routing
          - router ospf 1
-         - no router-id 1.1.1.1
-         - router-id 1.1.1.1
          - interface g1/0/1
          - ip ospf 1 area 0
          - interface vlan 10
@@ -233,15 +202,12 @@
          - ip ospf 1 area 0
          - interface vlan 99
          - ip ospf 1 area 0
-       
-
+        
 
    - name: Guardamos configuracion CD1
      cisco.ios.ios_config:
        lines:
          - do wr
-
-
 
 
 ##Configuracion CD2
@@ -251,14 +217,10 @@
   tasks:
 
 
-
-
    - name: Quitar VTP
      cisco.ios.ios_config:
        lines:
          - no vtp mode client
-
-
 
 
    - name: IP CD2
@@ -268,8 +230,6 @@
          - no switchport
          - ip address 192.168.100.6 255.255.255.252
          - no shutdown
-
-
 
 
    - name: Crear VLAN
@@ -291,15 +251,11 @@
          - name PARKING
 
 
-
-
    - name: Configurar VTP Cliente
      cisco.ios.ios_config:
        lines:
          - vtp mode client
          - vtp domain tartuski
-
-
 
 
    - name: Deshabilitar bocas (puertos específicos)
@@ -311,16 +267,12 @@
          - shutdown
 
 
-
-
    - name: Habilitar bocas Trunk
      cisco.ios.ios_config:
        lines:
          - interface range g1/0/1,g1/0/3
          - switchport mode trunk
          - no shutdown
-
-
 
 
    - name: Etherchannel
@@ -333,8 +285,6 @@
          - no shutdown
 
 
-
-
    - name: Spanning-tree
      cisco.ios.ios_config:
        lines:
@@ -344,56 +294,51 @@
          - spanning-tree VLAN 50 root primary
 
 
-
-
    - name: InterVLAN Routing
      cisco.ios.ios_config:
        lines:
          - interface vlan 10
          - ip address 192.168.10.253 255.255.255.0
          - standby 1 ip 192.168.10.254
-         - standby 1 priority 150
+         - standby 1 priority 100
          - standby 1 preempt
          - standby 1 authentication tartuski
          - standby 1 timers 5 15
          - interface vlan 20
          - ip address 192.168.20.253 255.255.255.0
-         - standby 1 ip 192.168.20.254
-         - standby 1 priority 150
-         - standby 1 preempt
-         - standby 1 authentication tartuski
-         - standby 1 timers 5 15
+         - standby 2 ip 192.168.20.254
+         - standby 2 priority 150
+         - standby 2 preempt
+         - standby 2 authentication tartuski
+         - standby 2 timers 5 15
          - interface vlan 30
          - ip address 192.168.30.253 255.255.255.0
-         - standby 1 ip 192.168.30.254
-         - standby 1 priority 150
-         - standby 1 preempt
-         - standby 1 authentication tartuski
-         - standby 1 timers 5 15
+         - standby 3 ip 192.168.30.254
+         - standby 3 priority 100
+         - standby 3 preempt
+         - standby 3 authentication tartuski
+         - standby 3 timers 5 15
          - interface vlan 40
          - ip address 192.168.40.253 255.255.255.0
-         - standby 1 ip 192.168.40.254
-         - standby 1 priority 150
-         - standby 1 preempt
-         - standby 1 authentication tartuski
-         - standby 1 timers 5 15
+         - standby 4 ip 192.168.40.254
+         - standby 4 priority 150
+         - standby 4 preempt
+         - standby 4 authentication tartuski
+         - standby 4 timers 5 15
          - interface vlan 50
          - ip address 192.168.50.253 255.255.255.0
-         - standby 1 ip 192.168.50.254
-         - standby 1 priority 150
-         - standby 1 preempt
-         - standby 1 authentication tartuski
-         - standby 1 timers 5 15
+         - standby 5 ip 192.168.50.254
+         - standby 5 priority 150
+         - standby 5 preempt
+         - standby 5 authentication tartuski
+         - standby 5 timers 5 15
          - interface vlan 60
          - ip address 192.168.60.253 255.255.255.0
-         - standby 1 ip 192.168.60.254
-         - standby 1 priority 150
-         - standby 1 preempt
-         - standby 1 authentication tartuski
-         - standby 1 timers 5 15
-
-
-
+         - standby 6 ip 192.168.60.254
+         - standby 6 priority 100
+         - standby 6 preempt
+         - standby 6 authentication tartuski
+         - standby 6 timers 5 15
 
 
 
@@ -403,13 +348,11 @@
          - no ip dhcp excluded-address 192.168.20.200 192.168.20.254
          - no ip dhcp pool vlan20
 
-
    - name: Eliminar configuración DHCP para vlan50
      cisco.ios.ios_config:
        lines:
          - no ip dhcp excluded-address 192.168.50.200 192.168.50.254
          - no ip dhcp pool vlan50
-
 
    - name: Eliminar configuración DHCP para vlan40
      cisco.ios.ios_config:
@@ -417,13 +360,11 @@
          - no ip dhcp excluded-address 192.168.40.200 192.168.40.254
          - no ip dhcp pool vlan40
 
-
    - name: Eliminar configuración DHCP para vlan60
      cisco.ios.ios_config:
        lines:
          - no ip dhcp excluded-address 192.168.60.200 192.168.60.254
          - no ip dhcp pool vlan60
-
 
    - name: DHCP
      cisco.ios.ios_config:
@@ -433,40 +374,32 @@
          - ip dhcp pool vlan20
          - network 192.168.20.0 255.255.255.0
          - default-router 192.168.20.254
-         ## pendiente de poner la de azure:
          - dns-server 8.8.8.8
        ## vlan 50
          - ip dhcp excluded-address 192.168.50.200 192.168.50.254
          - ip dhcp pool vlan50
          - network 192.168.50.0 255.255.255.0
          - default-router 192.168.50.254
-         ## pendiente de poner la de azure:
          - dns-server 8.8.8.8
        ## vlan 40
          - ip dhcp excluded-address 192.168.40.200 192.168.40.254
          - ip dhcp pool vlan40
          - network 192.168.40.0 255.255.255.0
          - default-router 192.168.40.254
-         ## pendiente de poner la de azure:
          - dns-server 8.8.8.8
        ## vlan 60
          - ip dhcp excluded-address 192.168.60.200 192.168.60.254
          - ip dhcp pool vlan60
          - network 192.168.60.0 255.255.255.0
          - default-router 192.168.60.254
-         ## pendiente de poner la de azure:
          - dns-server 8.8.8.8
-
-
 
 
    - name: OSPF
      cisco.ios.ios_config:
        lines:
          - ip routing
-         - no router-id 2.2.2.2
          - router ospf 1
-         - router-id 2.2.2.2
          - interface g1/0/2
          - ip ospf 1 area 0
          - interface vlan 10
@@ -483,8 +416,6 @@
          - ip ospf 1 area 0
          - interface vlan 99
          - ip ospf 1 area 0
-
-
 
 
    - name: Guardamos configuracion CD2
