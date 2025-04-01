@@ -3,6 +3,9 @@
   hosts: CD1
   gather_facts: no
   tasks:
+   - name: Incluir archivo .env para CD1
+     include_vars:
+       file: .env
 
    - name: Quitar VTP
      cisco.ios.ios_config:
@@ -220,6 +223,9 @@
   hosts: CD2
   gather_facts: no
   tasks:
+   - name: Incluir archivo .env para CD1
+     include_vars:
+       file: .env
 
 
    - name: Quitar VTP

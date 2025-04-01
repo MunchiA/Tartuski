@@ -3,6 +3,9 @@
   hosts: A1
   gather_facts: no
   tasks:
+    - name: Incluir archivo .env para CD1
+      include_vars:
+        file: .env
 
 
     - name: Quitar VTP
@@ -106,19 +109,19 @@
           - spanning-tree VLAN 60 root secondary
           - spanning-tree VLAN 99 root secondary
 
-   - name: ip dhcp snooping 
-     cisco.ios.ios_config:
-       lines:
-         - ip dhcp snooping
-         - ip dhcp snooping vlan 10-60
-         - interface range g1/0/2-3
-         - ip dhcp snooping trust
+    - name: ip dhcp snooping 
+      cisco.ios.ios_config:
+        lines:
+          - ip dhcp snooping
+          - ip dhcp snooping vlan 10-60
+          - interface range g1/0/2-3
+          - ip dhcp snooping trust
 
-  - name: ip dhcp snooping acces
-     cisco.ios.ios_config:
-       lines:
-         - interface range g1/0/13-14, g1/0/24
-         - ip dhcp snooping limit rate 10
+    - name: ip dhcp snooping acces
+      cisco.ios.ios_config:
+        lines:
+          - interface range g1/0/13-14, g1/0/24
+          - ip dhcp snooping limit rate 10
 
     - name: Guardamos configuracion A1
       cisco.ios.ios_config:
@@ -131,7 +134,9 @@
   hosts: A2
   gather_facts: no
   tasks:
-
+    - name: Incluir archivo .env para CD1
+      include_vars:
+        file: .env
 
     - name: Quitar VTP
       cisco.ios.ios_config:
@@ -235,19 +240,19 @@
           - spanning-tree VLAN 60 root secondary
           - spanning-tree VLAN 99 root secondary
 
-   - name: ip dhcp snooping 
-     cisco.ios.ios_config:
-       lines:
-         - ip dhcp snooping
-         - ip dhcp snooping vlan 10-60
-         - interface range g1/0/1, g1/0/3
-         - ip dhcp snooping trust
+    - name: ip dhcp snooping 
+      cisco.ios.ios_config:
+        lines:
+          - ip dhcp snooping
+          - ip dhcp snooping vlan 10-60
+          - interface range g1/0/1, g1/0/3
+          - ip dhcp snooping trust
 
-  - name: ip dhcp snooping acces
-     cisco.ios.ios_config:
-       lines:
-         - interface range g1/0/13-14, g1/0/23-24
-         - ip dhcp snooping limit rate 10
+    - name: ip dhcp snooping acces
+      cisco.ios.ios_config:
+        lines:
+          - interface range g1/0/13-14, g1/0/23-24
+          - ip dhcp snooping limit rate 10
 
     - name: Guardamos configuracion A2
       cisco.ios.ios_config:
