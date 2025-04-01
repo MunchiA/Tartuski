@@ -202,6 +202,14 @@
          - ip ospf 1 area 0
          - interface vlan 99
          - ip ospf 1 area 0
+
+   - name: ip dhcp snooping 
+     cisco.ios.ios_config:
+       lines:
+         - ip dhcp snooping
+         - ip dhcp snooping vlan 10,20,30,40,50,60
+         - interface g1/0/1
+         - ip dhcp snooping trust
         
 
    - name: Guardamos configuracion CD1
@@ -417,6 +425,14 @@
          - interface vlan 99
          - ip ospf 1 area 0
 
+   - name: ip dhcp snooping 
+     cisco.ios.ios_config:
+       lines:
+         - ip dhcp snooping
+         - ip dhcp snooping vlan 10-60
+         - interface g1/0/1
+         - ip dhcp snooping trust
+     
 
    - name: Guardamos configuracion CD2
      cisco.ios.ios_config:
