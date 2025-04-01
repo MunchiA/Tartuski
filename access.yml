@@ -1,0 +1,229 @@
+##Configuracion A1
+- name: Configuración de Switch de Acceso - A1
+  hosts: A1
+  gather_facts: no
+  tasks:
+
+
+    - name: Quitar VTP
+      cisco.ios.ios_config:
+        lines:
+          - no vtp mode client
+
+
+    - name: Crear VLAN
+      cisco.ios.ios_config:
+        lines:
+          - vlan 10
+          - name VENTAS
+          - vlan 20
+          - name MARKETING
+          - vlan 30
+          - name RRHH
+          - vlan 40
+          - name IT
+          - vlan 50
+          - name MANTENIMIENTO
+          - vlan 60
+          - name VoIP
+          - vlan 999
+          - name PARKING
+   
+    - name: Configurar VTP Cliente
+      cisco.ios.ios_config:
+        lines:
+          - vtp mode client
+          - vtp domain tartuski
+
+
+    - name: Configurar VLAN de VoIP
+      cisco.ios.ios_config:
+        lines:
+          - interface g1/0/14
+          - switchport voice vlan 60
+
+
+    - name: Deshabilitar bocas (puertos específicos)
+      cisco.ios.ios_config:
+        lines:
+          - interface range g1/0/1, g1/0/4-12, g1/0/15-21
+          - switchport mode access
+          - switchport access vlan 999
+          - shutdown
+
+
+    - name: Habilitar bocas Access
+      cisco.ios.ios_config:
+        lines:
+          - interface range g1/0/13-14, g1/0/23-24
+          - switchport mode access
+          - no shutdown
+          - interface g1/0/13
+          - switchport access vlan 10
+          - interface g1/0/14
+          - no switchport access vlan 99
+          - switchport access vlan 30
+          - mls qos trust cos
+          - switchport voice vlan 60
+          - interface g1/0/24
+          - switchport access vlan 40
+
+
+    - name: Habilitar bocas Trunk
+      cisco.ios.ios_config:
+        lines:
+          - interface range g1/0/2-3
+          - switchport mode trunk
+          - no shutdown
+
+
+    - name: Configurar PortFast y BPDU Guard
+      cisco.ios.ios_config:
+        lines:
+          - interface range g1/0/13-14, g1/0/24
+          - spanning-tree portfast
+          - spanning-tree bpduguard enable
+
+
+    - name: Configurar Switch Port Security
+      cisco.ios.ios_config:
+        lines:
+          - interface range g1/0/13-14, g1/0/24
+          - switchport mode access
+          - switchport port-security
+          - switchport port-security maximum 2
+          - switchport port-security violation restrict
+          - switchport port-security aging time 5
+   
+    - name: Spanning-tree
+      cisco.ios.ios_config:
+        lines:
+          - spanning-tree VLAN 10 root secondary
+          - spanning-tree VLAN 20 root secondary
+          - spanning-tree VLAN 30 root secondary
+          - spanning-tree VLAN 40 root secondary
+          - spanning-tree VLAN 50 root secondary
+          - spanning-tree VLAN 60 root secondary
+          - spanning-tree VLAN 99 root secondary
+
+
+    - name: Guardamos configuracion A1
+      cisco.ios.ios_config:
+        lines:
+          - do wr
+
+
+##Configuracion A2
+- name: Configuración de Switch de Acceso - A2
+  hosts: A2
+  gather_facts: no
+  tasks:
+
+
+    - name: Quitar VTP
+      cisco.ios.ios_config:
+        lines:
+          - no vtp mode client
+
+
+    - name: Crear VLAN
+      cisco.ios.ios_config:
+        lines:
+          - vlan 10
+          - name VENTAS
+          - vlan 20
+          - name MARKETING
+          - vlan 30
+          - name RRHH
+          - vlan 40
+          - name IT
+          - vlan 50
+          - name MANTENIMIENTO
+          - vlan 60
+          - name VoIP
+          - vlan 999
+          - name PARKING
+   
+    - name: Configurar VTP Cliente
+      cisco.ios.ios_config:
+        lines:
+          - vtp mode client
+          - vtp domain tartuski
+
+
+    - name: Configurar VLAN de VoIP
+      cisco.ios.ios_config:
+        lines:
+          - interface g1/0/13
+          - switchport voice vlan 60
+
+
+    - name: Deshabilitar bocas (puertos específicos)
+      cisco.ios.ios_config:
+        lines:
+          - interface range g1/0/2-12, g1/0/15-22
+          - switchport mode access
+          - switchport access vlan 999
+          - shutdown
+
+
+    - name: Habilitar bocas Access
+      cisco.ios.ios_config:
+        lines:
+          - interface range g1/0/13-14, g1/0/23-24
+          - switchport mode access
+          - no shutdown
+          - interface g1/0/13
+          - switchport access vlan 50
+          - mls qos trust cos
+          - switchport voice vlan 60
+          - interface range g1/0/14, g1/0/23
+          - no switchport access vlan 99
+          - switchport access vlan 20
+          - interface g1/0/24
+          - switchport access vlan 40
+
+
+    - name: Habilitar bocas Trunk
+      cisco.ios.ios_config:
+        lines:
+          - interface range g1/0/1, g1/0/3
+          - switchport mode trunk
+          - no shutdown
+
+
+    - name: Configurar PortFast y BPDU Guard
+      cisco.ios.ios_config:
+        lines:
+          - interface range g1/0/13-14, g1/0/23-24
+          - spanning-tree portfast
+          - spanning-tree bpduguard enable
+
+
+    - name: Configurar Switch Port Security
+      cisco.ios.ios_config:
+        lines:
+          - interface range g1/0/13-14, g1/0/23-24
+          - switchport mode access
+          - switchport port-security
+          - switchport port-security maximum 2
+          - switchport port-security violation restrict
+          - switchport port-security aging time 5
+
+
+    - name: Spanning-tree
+      cisco.ios.ios_config:
+        lines:
+          - spanning-tree VLAN 10 root secondary
+          - spanning-tree VLAN 20 root secondary
+          - spanning-tree VLAN 30 root secondary
+          - spanning-tree VLAN 40 root secondary
+          - spanning-tree VLAN 50 root secondary
+          - spanning-tree VLAN 60 root secondary
+          - spanning-tree VLAN 99 root secondary
+
+
+    - name: Guardamos configuracion A2
+      cisco.ios.ios_config:
+        lines:
+          - do wr
