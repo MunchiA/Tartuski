@@ -207,10 +207,7 @@
      cisco.ios.ios_config:
        lines:
          - ip dhcp snooping
-         - ip dhcp snooping vlan 10,20,30,40,50,60
-         - interface g1/0/1
-         - ip dhcp snooping trust
-        
+         - ip dhcp snooping vlan 10,20,30,40,50,60       
 
    - name: Guardamos configuracion CD1
      cisco.ios.ios_config:
@@ -430,8 +427,6 @@
        lines:
          - ip dhcp snooping
          - ip dhcp snooping vlan 10-60
-         - interface g1/0/1
-         - ip dhcp snooping trust
      
 
    - name: Guardamos configuracion CD2
