@@ -171,23 +171,22 @@
     - name: Deshabilitar bocas (puertos específicos)
       cisco.ios.ios_config:
         lines:
-          - interface range g1/0/2-12, g1/0/15-22
+          - interface range g1/0/2-12, g1/0/15-23
           - switchport mode access
           - switchport access vlan 999
           - shutdown
 
-
     - name: Habilitar bocas Access
       cisco.ios.ios_config:
         lines:
-          - interface range g1/0/13-14, g1/0/23-24
+          - interface range g1/0/13-14, g1/0/24
           - switchport mode access
           - no shutdown
           - interface g1/0/13
           - switchport access vlan 50
           - mls qos trust cos
           - switchport voice vlan 60
-          - interface range g1/0/14, g1/0/23
+          - interface range g1/0/14
           - switchport access vlan 20
           - interface g1/0/24
           - switchport access vlan 40

@@ -372,6 +372,7 @@
          - standby 6 preempt
          - standby 6 authentication tartuski
          - standby 6 timers 5 15
+         - interface vlan 70
          - ip address 192.168.70.253 255.255.255.0
          - standby 7 ip 192.168.70.254
          - standby 7 priority 100
