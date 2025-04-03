@@ -36,6 +36,8 @@
          - name MANTENIMIENTO
          - vlan 60
          - name VoIP
+         - vlan 70
+         - name WIFI
          - vlan 999
          - name PARKING
 
@@ -79,6 +81,7 @@
        lines:
          - spanning-tree VLAN 10 root primary
          - spanning-tree VLAN 30 root primary
+         - spanning-tree VLAN 70 root primary
          - spanning-tree VLAN 20 root secondary
          - spanning-tree VLAN 50 root secondary
 
@@ -128,6 +131,13 @@
          - standby 6 preempt
          - standby 6 authentication tartuski
          - standby 6 timers 5 15
+         - interface vlan 70
+         - ip address 192.168.70.252 255.255.255.0
+         - standby 7 ip 192.168.70.254
+         - standby 7 priority 150
+         - standby 7 preempt
+         - standby 7 authentication tartuski
+         - standby 7 timers 5 15
 
 
 
@@ -154,6 +164,12 @@
        lines:
          - no ip dhcp excluded-address 192.168.60.200 192.168.60.254
          - no ip dhcp pool vlan60
+
+   - name: Eliminar configuración DHCP para vlan70
+     cisco.ios.ios_config:
+       lines:
+         - no ip dhcp excluded-address 192.168.70.200 192.168.70.254
+         - no ip dhcp pool vlan70
 
    - name: DHCP
      cisco.ios.ios_config:
@@ -182,6 +198,12 @@
          - network 192.168.60.0 255.255.255.0
          - default-router 192.168.60.254
          - dns-server 8.8.8.8
+       ## vlan 70
+         - ip dhcp excluded-address 192.168.70.200 192.168.70.254
+         - ip dhcp pool vlan70
+         - network 192.168.70.0 255.255.255.0
+         - default-router 192.168.70.254
+         - dns-server 8.8.8.8
 
 
    - name: OSPF
@@ -202,6 +224,8 @@
          - interface vlan 50
          - ip ospf 1 area 0
          - interface vlan 60
+         - ip ospf 1 area 0
+         - interface vlan 70
          - ip ospf 1 area 0
          - interface vlan 99
          - ip ospf 1 area 0
@@ -253,6 +277,8 @@
          - name MANTENIMIENTO
          - vlan 60
          - name VoIP
+         - vlan 70
+         - name WIFI
          - vlan 999
          - name PARKING
 
@@ -296,6 +322,7 @@
        lines:
          - spanning-tree VLAN 10 root secondary
          - spanning-tree VLAN 30 root secondary
+         - spanning-tree VLAN 70 root secondary
          - spanning-tree VLAN 20 root primary
          - spanning-tree VLAN 50 root primary
 
@@ -345,6 +372,12 @@
          - standby 6 preempt
          - standby 6 authentication tartuski
          - standby 6 timers 5 15
+         - ip address 192.168.70.253 255.255.255.0
+         - standby 7 ip 192.168.70.254
+         - standby 7 priority 100
+         - standby 7 preempt
+         - standby 7 authentication tartuski
+         - standby 7 timers 5 15
 
 
    - name: Eliminar configuración DHCP para vlan20
@@ -418,6 +451,8 @@
          - interface vlan 50
          - ip ospf 1 area 0
          - interface vlan 60
+         - ip ospf 1 area 0
+         - interface vlan 70
          - ip ospf 1 area 0
          - interface vlan 99
          - ip ospf 1 area 0

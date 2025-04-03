@@ -29,6 +29,8 @@
           - name MANTENIMIENTO
           - vlan 60
           - name VoIP
+          - vlan 70
+          - name WIFI
           - vlan 999
           - name PARKING
    
@@ -68,7 +70,7 @@
           - mls qos trust cos
           - switchport voice vlan 60
           - interface g1/0/23
-          - switchport access vlan 99
+          - switchport access vlan 70
           - interface g1/0/24
           - switchport access vlan 40
 
@@ -108,6 +110,7 @@
           - spanning-tree VLAN 40 root secondary
           - spanning-tree VLAN 50 root secondary
           - spanning-tree VLAN 60 root secondary
+          - spanning-tree VLAN 70 root secondary
           - spanning-tree VLAN 99 root secondary
 
     - name: Guardamos configuracion A1
@@ -146,6 +149,8 @@
           - name MANTENIMIENTO
           - vlan 60
           - name VoIP
+          - vlan 70
+          - name WIFI
           - vlan 999
           - name PARKING
    
@@ -224,6 +229,7 @@
           - spanning-tree VLAN 40 root secondary
           - spanning-tree VLAN 50 root secondary
           - spanning-tree VLAN 60 root secondary
+          - spanning-tree VLAN 70 root secondary
           - spanning-tree VLAN 99 root secondary
 
     - name: Guardamos configuracion A2
