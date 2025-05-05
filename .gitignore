@@ -1,1 +1,7 @@
-.env
+DispositivosFisicos/.env
+Azure-Terraform/terraform.tfvars
+Azure-Terraform/.terraform.lock.hcl
+Azure-Terraform/terraform.tfstate
+AWS-Terraform/terraform.tfvars
+AWS-Terraform/.terraform.lock.hcl
+Azure-Terraform/terraform.tfstate
