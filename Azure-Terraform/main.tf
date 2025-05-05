@@ -17,6 +17,13 @@ provider "azuread" {
 resource "azuread_application" "tartuski" {
   display_name            = "tartuski"
   prevent_duplicate_names = true
+
+  # Agregamos las URIs de redirección 
+  web {
+    redirect_uris = [ # Hay que añadir la url de AWS - nota para dev
+      "https://tartuski.amunchi.net/auth" # con una , podemos añadir más entradas  
+    ]
+  }
 }
 
 # Agregamos una contraseña para la aplicación
