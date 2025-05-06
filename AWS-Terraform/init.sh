@@ -53,6 +53,7 @@ server {
 }
 EOF
 
+rm -f /etc/nginx/sites-enabled/default
 ln -s /etc/nginx/sites-available/tartuski /etc/nginx/sites-enabled/
 nginx -t && systemctl reload nginx
 
