@@ -183,3 +183,106 @@ resource "aws_route_table_association" "private_db_b_association" {
   subnet_id      = aws_subnet.private_DB_subnet_1b.id
   route_table_id = aws_route_table.private_route_table_b.id
 }
+
+resource "aws_security_group" "tartuski_sg" {
+  name        = "tartuski-sg"
+  description = "Permite HTTP, HTTPS y SSH"
+  vpc_id      = aws_vpc.tartuski_vpc.id
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["83.51.65.100/32"]
+  }
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "Tartuski SG"
+  }
+}
+
+resource "aws_lb" "alb" {
+  name               = "tartuski-alb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.tartuski_sg.id]
+  subnets            = [
+    aws_subnet.public_nat_subnet_1a.id,
+    aws_subnet.public_nat_subnet_1b.id
+  ]
+
+  tags = {
+    Name = "Tartuski ALB"
+  }
+}
+
+resource "aws_lb_target_group" "tg" {
+  name        = "tartuski-tg"
+  port        = 80
+  protocol    = "HTTP"
+  target_type = "instance"
+  vpc_id      = aws_vpc.tartuski_vpc.id
+
+  health_check {
+    path     = "/"
+    protocol = "HTTP"
+    matcher  = "200"
+  }
+}
+
+resource "aws_lb_listener" "http" {
+  load_balancer_arn = aws_lb.alb.arn
+  port              = 80
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.tg.arn
+  }
+}
+
+resource "aws_instance" "tartuski_web" {
+  ami                         = "ami-0fc5d935ebf8bc3bc"
+  instance_type               = "t3.micro"
+  key_name                    = "tartuski-key"
+  subnet_id                   = aws_subnet.public_nat_subnet_1a.id
+  associate_public_ip_address = true
+  vpc_security_group_ids      = [aws_security_group.tartuski_sg.id]
+  user_data                   = file("init.sh")
+
+  tags = {
+    Name = "Tartuski Web"
+  }
+}
+
+resource "aws_lb_target_group_attachment" "tg_attachment" {
+  target_group_arn = aws_lb_target_group.tg.arn
+  target_id        = aws_instance.tartuski_web.id
+  port             = 80
+}
+
+output "alb_dns_name" {
+  value = aws_lb.alb.dns_name
+  description = "DNS del Load Balancer para tartuski.cat"
+}
