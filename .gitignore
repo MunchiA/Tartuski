@@ -8,3 +8,4 @@ AWS-Terraform/terraform.tfvars
 AWS-Terraform/.terraform.lock.hcl
 AWS-Terraform/terraform.tfstate
 AWS-Terraform/terraform.tfstate.backup
+AWS-Terraform/.terraform
