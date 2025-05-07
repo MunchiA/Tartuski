@@ -4,7 +4,7 @@ provider "aws" {
 
 # Definición de la VPC
 resource "aws_vpc" "tartuski_vpc" {
-  cidr_block = "10.0.0.0/16"  # Ajusta el CIDR si es necesario
+  cidr_block = "10.0.0.0/16"
   tags = {
     Name = "Tartuski VPC"
   }
@@ -184,17 +184,11 @@ resource "aws_route_table_association" "private_db_b_association" {
   route_table_id = aws_route_table.private_route_table_b.id
 }
 
-resource "aws_security_group" "tartuski_sg" {
-  name        = "tartuski-sg"
-  description = "Permite HTTP, HTTPS y SSH"
+# Grupo de seguridad para el ALB (permite tráfico público en puertos 80 y 443)
+resource "aws_security_group" "alb_sg" {
+  name        = "alb-sg"
+  description = "Permite HTTP y HTTPS desde Internet hacia el ALB"
   vpc_id      = aws_vpc.tartuski_vpc.id
-
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
 
   ingress {
     from_port   = 80
@@ -218,15 +212,48 @@ resource "aws_security_group" "tartuski_sg" {
   }
 
   tags = {
-    Name = "Tartuski SG"
+    Name = "ALB SG"
   }
 }
 
+# Grupo de seguridad para las instancias web (permite tráfico del ALB y SSH desde el bastión)
+resource "aws_security_group" "web_sg" {
+  name        = "web-sg"
+  description = "Permite HTTP desde el ALB y SSH desde el bastion a las instancias web"
+  vpc_id      = aws_vpc.tartuski_vpc.id
+
+  ingress {
+    from_port       = 8000
+    to_port         = 8000
+    protocol        = "tcp"
+    security_groups = [aws_security_group.alb_sg.id]
+  }
+
+  ingress {
+    from_port       = 22
+    to_port         = 22
+    protocol        = "tcp"
+    security_groups = [aws_security_group.bastion_sg.id]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "Web SG"
+  }
+}
+
+# Balanceador de carga (actualizado para usar el grupo de seguridad del ALB)
 resource "aws_lb" "alb" {
   name               = "tartuski-alb"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = [aws_security_group.tartuski_sg.id]
+  security_groups    = [aws_security_group.alb_sg.id]
   subnets            = [
     aws_subnet.public_nat_subnet_1a.id,
     aws_subnet.public_nat_subnet_1b.id
@@ -237,9 +264,10 @@ resource "aws_lb" "alb" {
   }
 }
 
+# Grupo de destino para el balanceador de carga
 resource "aws_lb_target_group" "tg" {
   name        = "tartuski-tg"
-  port        = 80
+  port        = 8000
   protocol    = "HTTP"
   target_type = "instance"
   vpc_id      = aws_vpc.tartuski_vpc.id
@@ -248,9 +276,11 @@ resource "aws_lb_target_group" "tg" {
     path     = "/"
     protocol = "HTTP"
     matcher  = "200"
+    port     = "8000"
   }
 }
 
+# Listener para el balanceador de carga
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.alb.arn
   port              = 80
@@ -262,27 +292,136 @@ resource "aws_lb_listener" "http" {
   }
 }
 
-resource "aws_instance" "tartuski_web" {
-  ami                         = "ami-0fc5d935ebf8bc3bc"
-  instance_type               = "t3.micro"
-  key_name                    = "tartuski-key"
-  subnet_id                   = aws_subnet.public_nat_subnet_1a.id
-  associate_public_ip_address = true
-  vpc_security_group_ids      = [aws_security_group.tartuski_sg.id]
-  user_data                   = file("init.sh")
+# Plantilla de lanzamiento para las instancias del grupo de autoescalado
+resource "aws_launch_template" "web_launch_template" {
+  name_prefix   = "tartuski-web-"
+  image_id      = "ami-0fc5d935ebf8bc3bc" # AMI usada en la instancia original
+  instance_type = "t3.micro"
+  key_name      = "vockey"
+  user_data     = filebase64("init.sh") # Script de inicialización codificado en base64
 
-  tags = {
-    Name = "Tartuski Web"
+  network_interfaces {
+    associate_public_ip_address = false # No asignar IPs públicas (subredes privadas)
+    security_groups             = [aws_security_group.web_sg.id]
+  }
+
+  tag_specifications {
+    resource_type = "instance"
+    tags = {
+      Name = "Tartuski Web Instance"
+    }
   }
 }
 
-resource "aws_lb_target_group_attachment" "tg_attachment" {
-  target_group_arn = aws_lb_target_group.tg.arn
-  target_id        = aws_instance.tartuski_web.id
-  port             = 80
+# Grupo de autoescalado para gestionar las instancias web
+resource "aws_autoscaling_group" "web_asg" {
+  name                = "tartuski-web-asg"
+  launch_template {
+    id      = aws_launch_template.web_launch_template.id
+    version = "$Latest" # Usa la versión más reciente de la plantilla
+  }
+  min_size            = 1  # Mínimo 1 instancia corriendo
+  max_size            = 3  # Máximo 3 instancias
+  desired_capacity    = 1  # Capacidad inicial
+  vpc_zone_identifier = [aws_subnet.private_web_subnet_1a.id, aws_subnet.private_web_subnet_1b.id] # Subredes privadas
+  target_group_arns   = [aws_lb_target_group.tg.arn] # Asociar al grupo de destino del ALB
 }
 
-output "alb_dns_name" {
-  value = aws_lb.alb.dns_name
-  description = "DNS del Load Balancer para tartuski.cat"
+# Política de escalado hacia arriba cuando la CPU >= 70%
+resource "aws_autoscaling_policy" "scale_up" {
+  name                   = "scale-up"
+  scaling_adjustment     = 1  # Aumentar en 1 instancia
+  adjustment_type        = "ChangeInCapacity"
+  cooldown               = 300 # 5 minutos de enfriamiento
+  autoscaling_group_name = aws_autoscaling_group.web_asg.name
+}
+
+# Alarma de CloudWatch para disparar el escalado hacia arriba
+resource "aws_cloudwatch_metric_alarm" "high_cpu" {
+  alarm_name          = "high-cpu-usage"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = 2  # Evaluar durante 2 períodos
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = 300 # Período de 5 minutos
+  statistic           = "Average"
+  threshold           = 70  # Umbral del 70%
+  alarm_description   = "Dispara cuando la CPU promedio supera el 70% durante 10 minutos"
+  dimensions = {
+    AutoScalingGroupName = aws_autoscaling_group.web_asg.name
+  }
+  alarm_actions = [aws_autoscaling_policy.scale_up.arn]
+}
+
+# Política de escalado hacia abajo cuando la CPU <= 30% (opcional para estabilidad)
+resource "aws_autoscaling_policy" "scale_down" {
+  name                   = "scale-down"
+  scaling_adjustment     = -1 # Reducir en 1 instancia
+  adjustment_type        = "ChangeInCapacity"
+  cooldown               = 300 # 5 minutos de enfriamiento
+  autoscaling_group_name = aws_autoscaling_group.web_asg.name
+}
+
+# Alarma de CloudWatch para disparar el escalado hacia abajo
+resource "aws_cloudwatch_metric_alarm" "low_cpu" {
+  alarm_name          = "low-cpu-usage"
+  comparison_operator = "LessThanOrEqualToThreshold"
+  evaluation_periods  = 2
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = 300
+  statistic           = "Average"
+  threshold           = 30  # Umbral del 30%
+  alarm_description   = "Dispara cuando la CPU promedio cae por debajo del 30% durante 10 minutos"
+  dimensions = {
+    AutoScalingGroupName = aws_autoscaling_group.web_asg.name
+  }
+  alarm_actions = [aws_autoscaling_policy.scale_down.arn]
+}
+
+# Grupo de seguridad para el bastión
+resource "aws_security_group" "bastion_sg" {
+  name        = "bastion-sg"
+  vpc_id      = aws_vpc.tartuski_vpc.id
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  tags = {
+    Name = "Bastion Host SG"
+  }
+}
+
+# Elastic IP para el bastión
+resource "aws_eip" "bastion_eip" {
+  domain = "vpc"
+  tags = {
+    Name = "Bastion_Tartuski EIP"
+  }
+}
+
+# Instancia bastión
+resource "aws_instance" "bastion_host" {
+  ami                    = "ami-05b10e08d247fb927"
+  instance_type          = "t2.micro"
+  subnet_id              = aws_subnet.public_nat_subnet_1a.id
+  key_name               = "vockey"
+  vpc_security_group_ids = [aws_security_group.bastion_sg.id]
+  tags = {
+    Name = "Bastion_Tartuski"
+  }
+}
+
+# Asociación del Elastic IP al bastión
+resource "aws_eip_association" "bastion_eip_assoc" {
+  instance_id   = aws_instance.bastion_host.id
+  allocation_id = aws_eip.bastion_eip.id
 }
