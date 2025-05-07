@@ -1,18 +1,26 @@
 #!/bin/bash
 
-# Actualizar e instalar paquetes
+# Actualizar e instalar paquetes necesarios
 apt update
-apt install -y python3-venv python3-pip nginx python3-certbot-nginx pkg-config libmysqlclient-dev git
+DEBIAN_FRONTEND=noninteractive apt install -y python3-venv python3-pip pkg-config libmysqlclient-dev git
 
 # Clonar el proyecto
 cd /root
 git clone https://github.com/MunchiA/TartuskiWeb.git
 cd TartuskiWeb
 
-# Crear entorno virtual e instalar dependencias
+# Crear archivo .env para la clave secreta de Flask
+echo "FLASK_SECRET_KEY=tartuski321" > /root/TartuskiWeb/.env
+
+# Crear y activar entorno virtual
 python3 -m venv venv
 source venv/bin/activate
+
+# Actualizar pip e instalar Gunicorn explícitamente
 pip install --upgrade pip
+pip install gunicorn
+
+# Instalar las dependencias del proyecto
 pip install -r requirements.txt
 
 # Crear servicio systemd para Gunicorn
@@ -25,6 +33,7 @@ After=network.target
 User=root
 Group=root
 WorkingDirectory=/root/TartuskiWeb
+Environment="PATH=/root/TartuskiWeb/venv/bin"
 ExecStart=/root/TartuskiWeb/venv/bin/gunicorn --workers 3 --bind 0.0.0.0:8000 app:app
 Restart=always
 
@@ -32,30 +41,7 @@ Restart=always
 WantedBy=multi-user.target
 EOF
 
-# Activar servicio
+# Activar y arrancar el servicio
 systemctl daemon-reload
 systemctl enable tartuski
 systemctl start tartuski
-
-# Configurar Nginx como proxy inverso
-cat <<EOF > /etc/nginx/sites-available/tartuski
-server {
-    listen 80;
-    server_name tartuski.cat www.tartuski.cat;
-
-    location / {
-        proxy_pass http://127.0.0.1:8000;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-    }
-}
-EOF
-
-rm -f /etc/nginx/sites-enabled/default
-ln -s /etc/nginx/sites-available/tartuski /etc/nginx/sites-enabled/
-nginx -t && systemctl reload nginx
-
-# Instalar certificado SSL con Certbot
-certbot --nginx --non-interactive --agree-tos -m tartuski.corp@gmail.com -d tartuski.cat -d www.tartuski.cat
