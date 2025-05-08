@@ -1,11 +1,12 @@
 #!/bin/bash
 
 # Actualizar e instalar paquetes necesarios
+sudo su
 apt update
-DEBIAN_FRONTEND=noninteractive apt install -y python3-venv python3-pip pkg-config libmysqlclient-dev git
+cd /root
+apt install -y python3.10-venv python3-pip pkg-config libmysqlclient-dev git
 
 # Clonar el proyecto
-cd /root
 git clone https://github.com/MunchiA/TartuskiWeb.git
 cd TartuskiWeb
 
