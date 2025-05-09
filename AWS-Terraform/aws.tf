@@ -295,7 +295,7 @@ resource "aws_lb_listener" "http" {
 # Plantilla de lanzamiento para las instancias del grupo de autoescalado
 resource "aws_launch_template" "web_launch_template" {
   name_prefix   = "tartuski-web-"
-  image_id      = "ami-0fc5d935ebf8bc3bc" # AMI usada en la instancia original
+  image_id      = "ami-05b10e08d247fb927" # AMI usada en la instancia original
   instance_type = "t3.micro"
   key_name      = "vockey"
   user_data     = filebase64("init.sh") # Script de inicialización codificado en base64
