@@ -16,3 +16,13 @@ pip install -r requirements.txt
 pip install gunicorn
 chmod +x script.sh
 python3 create_tables.py
+
+# Crear el archivo de configuración de Gunicorn
+cat << 'EOF_CONF' > gunicorn.conf.py
+bind = '0.0.0.0:8000'
+workers = 3
+timeout = 120
+EOF_CONF
+
+# Iniciar Gunicorn
+gunicorn -c gunicorn.conf.py app:app &
