@@ -1,5 +1,8 @@
 #!/bin/bash
 # Actualizar e instalar paquetes necesarios
+# --- Obtener endpoint (DB_HOST) ---
+DB_HOST="${db_host}"
+
 sudo dnf update -y
 sudo dnf install -y python3 python3-pip python3-devel gcc openssl-devel libffi-devel mariadb105-devel git make pkgconf zlib-devel bzip2-devel readline-devel sqlite-devel tk-devel libuuid-devel xz-devel mariadb105
 
@@ -14,8 +17,9 @@ source venv/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt
 pip install gunicorn
-chmod +x script.sh
 python3 create_tables.py
+chmod +x create_db.sh
+./create_db.sh $DB_HOST
 
 # Crear el archivo de configuración de Gunicorn
 cat << 'EOF_CONF' > gunicorn.conf.py
