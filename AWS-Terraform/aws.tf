@@ -344,7 +344,7 @@ resource "aws_launch_template" "web_launch_template" {
   image_id      = "ami-05b10e08d247fb927"
   instance_type = "t3.micro"
   key_name      = "vockey"
-  user_data     = filebase64("init.sh")
+  user_data = base64encode(templatefile("init.sh", { db_host = aws_rds_cluster.aurora_sql_cluster_tartuski.endpoint }))
   network_interfaces {
     associate_public_ip_address = false
     security_groups             = [aws_security_group.web_sg.id]
