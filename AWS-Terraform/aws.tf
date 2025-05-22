@@ -575,3 +575,46 @@ resource "aws_s3_bucket_lifecycle_configuration" "lifecycle_config" {
     }
   }
 }
+# ==============================================
+# ACTUALIZACIÓN DE DNS EN DNSEXIT
+# ==============================================
+
+# Generar el archivo domain.json con el DNS del ALB
+locals {
+  domain_json = jsonencode({
+    domain = var.domain_name
+    update = {
+      type    = "CNAME"
+      name    = "www.${var.domain_name}."
+      content = aws_lb.alb.dns_name
+      ttl     = 2
+    }
+  })
+}
+
+# Crear el archivo domain.json
+resource "local_file" "domain_json" {
+  content  = local.domain_json
+  filename = "${path.module}/domain.json"
+}
+
+# Ejecutar el comando curl para actualizar el DNS en DNSExit
+resource "null_resource" "dns_update" {
+  depends_on = [local_file.domain_json, aws_lb.alb]
+
+  provisioner "local-exec" {
+    command = <<EOT
+set -x
+curl -v -H "Content-Type: application/json" -H "apikey: ${var.dns_exit_api_token}" -H "domain: ${var.domain_name}" --data @${path.module}/domain.json https://api.dnsexit.com/dns/ > ${path.module}/dns_update_response.txt 2>&1
+if [ $? -ne 0 ]; then
+  echo "Error: curl command failed. Check ${path.module}/dns_update_response.txt for details."
+  exit 1
+fi
+EOT
+  }
+
+  # Forzar la ejecución en cada apply para pruebas
+  triggers = {
+    always_run = timestamp() # Elimina este trigger una vez que funcione
+    alb_dns_name = aws_lb.alb.dns_name
+  }
